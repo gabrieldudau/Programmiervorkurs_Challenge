@@ -1,5 +1,8 @@
-# Kleine Infos, um das Testen einfacher zu gestalten
+---
+# Damit es schön aussieht, müsst ihr die Schriftgröße, bzw Fenstergröße anpassen. Es sollte nicht zu sehr hineingezoomt werden, da sonst Fehler entstehen. 
+---
 
+# Kleine Infos, um das Testen einfacher zu gestalten
 
 ## Eingabe der Namen
 
