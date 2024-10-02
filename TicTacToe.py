@@ -23,46 +23,89 @@ class SmartBot:
     def __init__(self):
         self.name = "Smart Bot"
 
-    """
-    Not yet implemented. I plan to make a smart bot, that uses backtracking to find the best move.
-    """
+    def checkWin(self, field: list):
+        '''
+        Überprüft ob ein Spieler gewonnen hat.
+        Zurückgegeben wird:
+        - 0: Kein Spieler hat gewonnen
+        - 1: X hat gewonnen
+        - 2: O hat gewonnen
+        '''
+        
+        for i in range(3):
+            if field[i][0] == field[i][1] == field[i][2] != 0:
+                return field[i][0]
+        
+        for i in range(3):
+            if field[0][i] == field[1][i] == field[2][i] != 0:
+                return field[0][i]
+        
+        if field[0][0] == field[1][1] == field[2][2] != 0:
+            return field[0][0]
+        
+        if field[0][2] == field[1][1] == field[2][0] != 0:
+            return field[0][2]
+
+        return 0
+    
+    def makeMove(self, field) -> list:
+        '''
+        Macht den bestmöglichen Zug für den Bot.
+        '''
+        
+        possibleMoves = []
+        for i in range(3):
+            for j in range(3):
+                if field[i][j] == 0:
+                    possibleMoves.append([i, j])  # Es werden alle Stellungen hinzugefügt, die möglich wären.
+        
+        scores = []
+        for move in possibleMoves:
+            new_field = [row[:] for row in field]  # Kopie des Spielfeldes, um das original nicht zu verändern
+            new_field[move[0]][move[1]] = 2  # Der Bot macht einen Zug, und schaut wie es weitergeht.
+            scores.append(self.getMoveScore(new_field, 2, len(possibleMoves)))
+        
+        biggest = float("-inf")
+        biggestI = 0
+        for i in range(len(scores)):
+            if scores[i] > biggest:
+                biggest = scores[i]
+                biggestI = i
+        
+        return possibleMoves[biggestI]
     
 
     
+    def getMoveScore(self, field: list, currentPlayer: int, weight: int) -> int:
+        '''
+        Es wird eine Summe erstellt für jede eingegebene Position. Die Summe wird um 1 erhöht, wenn aus dieser Position ein 
+        Gewinn entsteht, um 1 verringert, wenn aus der Position verloren wird, und 1 hinzugefügt wenn aus dieser Position ein 
+        Gleichstand entsteht.
+        '''
 
-    def minimax(self, field, depth, is_maximizing):
-        winner = checkWin()
-        if winner != 0:
-            return self.evaluate(winner)
+        winner = self.checkWin(field)
 
-        if is_maximizing:
-            best_score = float('-inf')
-            for i in range(3):
-                for j in range(3):
-                    if field[i][j] == 0:
-                        field[i][j] = 2  # SmartBot plays as 'O' (2)
-                        score = self.minimax(field, depth + 1, False)
-                        field[i][j] = 0
-                        best_score = max(score, best_score)
-            return best_score
-        else:
-            best_score = float('inf')
-            for i in range(3):
-                for j in range(3):
-                    if field[i][j] == 0:
-                        field[i][j] = 1  # Opponent plays as 'X' (1)
-                        score = self.minimax(field, depth + 1, True)
-                        field[i][j] = 0
-                        best_score = min(score, best_score)
-            return best_score
-
-    def evaluate(self, winner):
         if winner == 2:
-            return 1  # SmartBot wins
+            return 1 * weight
         elif winner == 1:
-            return -1  # Opponent wins
-        else:
-            return 0  # Draw
+            return -1 * weight
+
+        possibleMoves = []
+        for i in range(3):
+            for j in range(3):
+                if field[i][j] == 0:
+                    possibleMoves.append([i, j])
+        
+        if len(possibleMoves) == 0:
+            return 0
+
+        sum = 0
+        for move in possibleMoves:
+            field[move[0]][move[1]] = currentPlayer
+            sum += self.getMoveScore(field, 2 if currentPlayer == 1 else 1, weight - 1)
+            field[move[0]][move[1]] = 0
+
+        return sum
 
 
 
@@ -285,14 +328,18 @@ def enterName(player:int) -> str:
     """
 
 
-    print(f"Spieler {player}, gebe deinen Namen ein"," (Gebe bot ein, um gegen dem computer zu spielen.):   "if player == 2 else ":   ", end="")
+    print(f"Spieler {player}, gebe deinen Namen ein"," \n   (Gebe sBot ein, um gegen einem schlauen Bot zu spielen <nicht gewinnbar> \n    oder bBot ein, um gegen einem schlechten Bot zu spielen <gewinnbar>):   "if player == 2 else ":   ", end="")
 
     name = input()
 
     answer = ""
 
+    if player == 2:
+        print("\033[F\033[K"*2, end="")
+
     while answer != "y":
         print("\033[F\033[K", end="")
+        
         print(f"Ist der Name \"{name}\" richtig? Gebe 'y' ein um fortzufahren. Ansonsten gebe 'n' ein:   ", end="")
         answer = input()
         
@@ -359,12 +406,12 @@ player2 = enterName(2)
 
 # --- ein Bot wird erstellt, der random Züge macht --- 
 botPlayer = False
-if player2 == "bot":
+if player2 == "sBot" or player2 == "bBot":
     botPlayer = True
-    bot = StupidBot()
+    bot = SmartBot() if player2 == "sBot" else StupidBot()
     player2 = bot.name
 
-print(f"\033[F\033[KSpieler 1:  {player1}          -          Spieler 2:  {player2}  \n")
+print(f"\033[F\033[K"*3 + f"Spieler 1:  {player1}          -          Spieler 2:  {player2}  \n")
 
 
 winner = checkWin()
@@ -375,7 +422,11 @@ draw = False
 while winner == 0:
     printPlayField()
 
-    print(f"{player1 if currentPlayer == 1 else player2}, wo möchtest du dein Zeichen setzen?  > Zeile, Spalte <    (beides sind Zahlen zwischen 0 und 2)   ", end="")
+    currentPlayerSign = "X" if currentPlayer == 1 else "O"
+
+    currentPlayerName = player1 if currentPlayer == 1 else player2
+
+    print(f"{currentPlayerName}, wo möchtest du dein Zeichen setzen?  > Zeile, Spalte <    (beides sind Zahlen zwischen 0 und 2)   ", end="")
     
     if currentPlayer == 2:
         if botPlayer:
@@ -400,10 +451,10 @@ while winner == 0:
     move = getInputList(user)
 
 
-    print("\033[K"if currentPlayer == 2 and botPlayer else "\033[F\033[K", end="")
-    print(f"{player1 if currentPlayer == 1 else player2} macht ein {"X" if currentPlayer == 1 else "O"} in der {move[0]}. Zeile und {move[1]}. Spalte!")
+    print(f"\033[K" if currentPlayer == 2 and botPlayer else f"\033[F\033[K", end="")
+    print(f"{currentPlayerName} macht ein {currentPlayerSign} in der {move[0]}. Zeile und {move[1]}. Spalte!")
 
-    time.sleep(0.5)
+    time.sleep(1)
 
     print("\033[F\033[K"*15, end="")
     field[move[0]][move[1]] = currentPlayer
@@ -412,10 +463,11 @@ while winner == 0:
     
     if winner == 0:
         printPlayField()
-        print(f"{player1 if currentPlayer == 1 else player2} macht ein {"X" if currentPlayer == 1 else "O"} in der {move[0]}. Zeile und {move[1]}. Spalte!")
+        
+        print(f"{player1 if currentPlayer == 1 else player2} macht ein {currentPlayerSign} in der {move[0]}. Zeile und {move[1]}. Spalte!")
     else:
         printWinField()
-        print(f"{player1 if currentPlayer == 1 else player2} macht ein {"X" if currentPlayer == 1 else "O"} in der {move[0]}. Zeile und {move[1]}. Spalte!")
+        print(f"{player1 if currentPlayer == 1 else player2} macht ein {currentPlayerSign} in der {move[0]}. Zeile und {move[1]}. Spalte!")
         break
 
     time.sleep(1)
