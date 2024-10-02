@@ -1,4 +1,4 @@
-# Kleine Infos, um das testen einfacher zu gestalten
+# Kleine Infos, um das Testen einfacher zu gestalten
 
 
 ## Eingabe der Namen
