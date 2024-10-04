@@ -1,3 +1,5 @@
+# Da man nur eine Datei anfügen kann, konnte ich euch keine README.md anfügen. Schaut gerne auf github unter https://github.com/gabrieldudau/Programmiervorkurs_Challenge/tree/master vorbei, um euch das testen zu vereinfachen :)
+
 import re
 import time
 import random
@@ -63,7 +65,7 @@ class SmartBot:
         for move in possibleMoves:
             new_field = [row[:] for row in field]  # Kopie des Spielfeldes, um das original nicht zu verändern
             new_field[move[0]][move[1]] = 2  # Der Bot macht einen Zug, und schaut wie es weitergeht.
-            scores.append(self.getMoveScore(new_field, 2, len(possibleMoves)))
+            scores.append(self.getMoveScore(new_field, 2, 1))
         
         biggest = float("-inf")
         biggestI = 0
@@ -86,9 +88,9 @@ class SmartBot:
         winner = self.checkWin(field)
 
         if winner == 2:
-            return 1 * weight
+            return 10 - weight
         elif winner == 1:
-            return -1 * weight
+            return weight -10
 
         possibleMoves = []
         for i in range(3):
@@ -102,7 +104,7 @@ class SmartBot:
         sum = 0
         for move in possibleMoves:
             field[move[0]][move[1]] = currentPlayer
-            sum += self.getMoveScore(field, 2 if currentPlayer == 1 else 1, weight - 1)
+            sum += self.getMoveScore(field, 2 if currentPlayer == 1 else 1, weight+1)
             field[move[0]][move[1]] = 0
 
         return sum
