@@ -65,7 +65,7 @@ class SmartBot:
         for move in possibleMoves:
             new_field = [row[:] for row in field]  # Kopie des Spielfeldes, um das original nicht zu verändern
             new_field[move[0]][move[1]] = 2  # Der Bot macht einen Zug, und schaut wie es weitergeht.
-            scores.append(self.getMoveScore(new_field, 2, 1))
+            scores.append(self.getMoveScore(new_field, 2, len(possibleMoves), True))
         
         biggest = float("-inf")
         biggestI = 0
@@ -78,7 +78,7 @@ class SmartBot:
     
 
     
-    def getMoveScore(self, field: list, currentPlayer: int, weight: int) -> int:
+    def getMoveScore(self, field: list, currentPlayer: int, weight: int, firstmove:bool) -> int:
         '''
         Es wird eine Summe erstellt für jede eingegebene Position. Die Summe wird um 1 erhöht, wenn aus dieser Position ein 
         Gewinn entsteht, um 1 verringert, wenn aus der Position verloren wird, und 1 hinzugefügt wenn aus dieser Position ein 
@@ -88,7 +88,7 @@ class SmartBot:
         winner = self.checkWin(field)
 
         if winner == 2:
-            return 10 - weight
+            return (1 * weight) if not firstmove else  1000000000
         elif winner == 1:
             return weight -10
 
@@ -104,7 +104,7 @@ class SmartBot:
         sum = 0
         for move in possibleMoves:
             field[move[0]][move[1]] = currentPlayer
-            sum += self.getMoveScore(field, 2 if currentPlayer == 1 else 1, weight+1)
+            sum += self.getMoveScore(field, 2 if currentPlayer == 1 else 1, weight - 1, False)
             field[move[0]][move[1]] = 0
 
         return sum
